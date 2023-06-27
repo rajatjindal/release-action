@@ -1,7 +1,8 @@
-import {GitHub} from '@actions/github/lib/utils'
-import {OctokitResponse} from "@octokit/types";
-import {RestEndpointMethodTypes} from "@octokit/plugin-rest-endpoint-methods";
-import {Inputs} from "./Inputs";
+import { GitHub } from '@actions/github/lib/utils'
+import { OctokitResponse } from "@octokit/types";
+import { RestEndpointMethodTypes } from "@octokit/plugin-rest-endpoint-methods";
+import { Inputs } from "./Inputs";
+import * as core from '@actions/core'
 
 export type CreateReleaseResponse = RestEndpointMethodTypes["repos"]["createRelease"]["response"]
 export type ReleaseByTagResponse = RestEndpointMethodTypes["repos"]["getReleaseByTag"]["response"]
@@ -80,6 +81,8 @@ export class GithubReleases implements Releases {
         name?: string,
         prerelease?: boolean
     ): Promise<CreateReleaseResponse> {
+        core.info(`[createRelease] tag: ${tag}, commitHash: ${commitHash}, draft: ${draft}, prerelease: ${prerelease}, name: ${name}`)
+
         // noinspection TypeScriptValidateJSTypes
         return this.git.rest.repos.createRelease({
             body: body,
@@ -99,6 +102,8 @@ export class GithubReleases implements Releases {
     async deleteArtifact(
         assetId: number
     ): Promise<OctokitResponse<any>> {
+        core.info(`[deleteArtifact] assetId: ${assetId}`)
+
         return this.git.rest.repos.deleteReleaseAsset({
             asset_id: assetId,
             owner: this.inputs.owner,
@@ -107,6 +112,7 @@ export class GithubReleases implements Releases {
     }
 
     async getByTag(tag: string): Promise<ReleaseByTagResponse> {
+        core.info(`[getByTag] tag: ${tag}`)
         return this.git.rest.repos.getReleaseByTag({
             owner: this.inputs.owner,
             repo: this.inputs.repo,
@@ -117,6 +123,7 @@ export class GithubReleases implements Releases {
     async listArtifactsForRelease(
         releaseId: number
     ): Promise<ListReleaseAssetsResponseData> {
+        core.info(`[listArtifactsForRelease] id: ${releaseId}`)
         return this.git.paginate(this.git.rest.repos.listReleaseAssets, {
             owner: this.inputs.owner,
             release_id: releaseId,
@@ -125,6 +132,7 @@ export class GithubReleases implements Releases {
     }
 
     async listReleases(): Promise<ListReleasesResponse> {
+        core.info(`[listReleases]`)
         return this.git.rest.repos.listReleases({
             owner: this.inputs.owner,
             repo: this.inputs.repo
@@ -143,6 +151,7 @@ export class GithubReleases implements Releases {
         prerelease?: boolean
     ): Promise<UpdateReleaseResponse> {
         // noinspection TypeScriptValidateJSTypes
+        core.info(`[update] id: ${id}, tag: ${tag}, commitHash: ${commitHash}, draft: ${draft}, prerelease: ${prerelease}, name: ${name}`)
         return this.git.rest.repos.updateRelease({
             release_id: id,
             body: body,
@@ -166,6 +175,7 @@ export class GithubReleases implements Releases {
         name: string,
         releaseId: number,
     ): Promise<UploadArtifactResponse> {
+        core.info(`[uploadArtifact] id: ${releaseId}`)
         return this.git.rest.repos.uploadReleaseAsset({
             url: assetUrl,
             headers: {

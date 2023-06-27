@@ -1,5 +1,5 @@
 import * as core from '@actions/core';
-import {Inputs} from "./Inputs";
+import { Inputs } from "./Inputs";
 import {
     CreateOrUpdateReleaseResponse,
     CreateReleaseResponse,
@@ -7,12 +7,12 @@ import {
     Releases,
     UpdateReleaseResponse
 } from "./Releases";
-import {ArtifactUploader} from "./ArtifactUploader";
-import {GithubError} from "./GithubError";
-import {Outputs} from "./Outputs";
-import {ArtifactDestroyer} from "./ArtifactDestroyer";
-import {ReleaseValidator} from "./ReleaseValidator";
-import {ActionSkipper} from "./ActionSkipper";
+import { ArtifactUploader } from "./ArtifactUploader";
+import { GithubError } from "./GithubError";
+import { Outputs } from "./Outputs";
+import { ArtifactDestroyer } from "./ArtifactDestroyer";
+import { ReleaseValidator } from "./ReleaseValidator";
+import { ActionSkipper } from "./ActionSkipper";
 
 export class Action {
     private inputs: Inputs
@@ -21,15 +21,15 @@ export class Action {
     private uploader: ArtifactUploader
     private artifactDestroyer: ArtifactDestroyer
     private skipper: ActionSkipper
-    
+
     private releaseValidator: ReleaseValidator
 
     constructor(inputs: Inputs,
-                outputs: Outputs,
-                releases: Releases,
-                uploader: ArtifactUploader,
-                artifactDestroyer: ArtifactDestroyer,
-                skipper: ActionSkipper) {
+        outputs: Outputs,
+        releases: Releases,
+        uploader: ArtifactUploader,
+        artifactDestroyer: ArtifactDestroyer,
+        skipper: ActionSkipper) {
         this.inputs = inputs
         this.outputs = outputs
         this.releases = releases
@@ -44,16 +44,17 @@ export class Action {
             core.notice("Skipping action, release already exists and skipIfReleaseExists is enabled.")
             return
         }
-        
+
         const releaseResponse = await this.createOrUpdateRelease();
+        core.info(`[perform] ${JSON.stringify(releaseResponse)}`);
         const releaseData = releaseResponse.data
         const releaseId = releaseData.id
         const uploadUrl = releaseData.upload_url
-        
+
         if (this.inputs.removeArtifacts) {
             await this.artifactDestroyer.destroyArtifacts(releaseId)
         }
-        
+
         const artifacts = this.inputs.artifacts
         if (artifacts.length > 0) {
             await this.uploader.uploadArtifacts(artifacts, releaseId, uploadUrl)
@@ -70,7 +71,7 @@ export class Action {
             } catch (error: any) {
                 return await this.checkForMissingReleaseError(error)
             }
-            
+
             // Fail if this isn't an unreleased release & updateOnlyUnreleased is enabled.
             this.releaseValidator.validateReleaseUpdate(getResponse.data)
 
